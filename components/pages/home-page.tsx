@@ -10,9 +10,8 @@ import {
   Phone, 
   MessageCircle, 
   Facebook,
-  Play,
   Sparkles,
-  Clock // เพิ่มไอคอนนาฬิกาสำหรับ Coming soon
+  Clock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -26,7 +25,8 @@ const services = [
     features: ["ทำบัญชีรายเดือน/รายปี", "ยื่นภาษี VAT, WHT, PND", "วางระบบบัญชี", "ปิดงบการเงินประจำปี", "จดทะเบียนบริษัท"],
     color: "from-sky-400 to-blue-600",
     shadowColor: "shadow-sky-500/20",
-    status: "ready" // สถานะพร้อมใช้งาน
+    status: "ready",
+    targetPage: "services" 
   },
   {
     title: "บริการวิศวกรรม",
@@ -37,7 +37,8 @@ const services = [
     features: ["รับตรวจบ้านและคอนโดก่อนโอนกรรมสิทธิ์"],
     color: "from-amber-400 to-orange-600",
     shadowColor: "shadow-amber-500/20",
-    status: "coming_soon" // สถานะยังไม่พร้อมใช้งาน
+    status: "coming_soon",
+    targetPage: "" 
   },
 ]
 
@@ -55,7 +56,11 @@ const stagger = {
   }
 }
 
-export default function HomePage() {
+interface HomePageProps {
+  onNavigate?: (pageId: any) => void;
+}
+
+export default function HomePage({ onNavigate }: HomePageProps) {
   return (
     <div className="min-h-screen overflow-hidden">
       {/* Hero Section */}
@@ -65,6 +70,7 @@ export default function HomePage() {
             src="/images/bg-pattern.jpg" 
             alt="" 
             fill 
+            priority 
             className="object-cover opacity-10" 
           />
         </div>
@@ -145,15 +151,15 @@ export default function HomePage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.7 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex justify-center"
             >
-              <Button size="lg" className="rounded-full px-10 h-16 text-lg shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 transition-all duration-300">
+              <Button 
+                onClick={() => onNavigate && onNavigate("contact")} 
+                size="lg" 
+                className="rounded-full px-10 h-16 text-lg shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 transition-all duration-300"
+              >
                 ปรึกษาเบื้องต้นฟรี
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-full px-10 h-16 text-lg group border-2 hover:bg-muted">
-                <Play className="mr-2 w-5 h-5 group-hover:scale-125 transition-transform" />
-                ดูวิดีโอแนะนำ
               </Button>
             </motion.div>
           </motion.div>
@@ -204,7 +210,6 @@ export default function HomePage() {
                     </div>
                   </div>
                   
-                  {/* ป้ายกำกับสำหรับบริการที่ยังไม่พร้อม */}
                   {service.status === "coming_soon" && (
                     <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" />
@@ -229,9 +234,11 @@ export default function HomePage() {
                     ))}
                   </ul>
 
-                  {/* แยกปุ่มกดตามสถานะ */}
                   {service.status === "ready" ? (
-                    <Button className="w-full rounded-2xl h-14 text-base font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <Button 
+                      onClick={() => onNavigate && onNavigate(service.targetPage)}
+                      className="w-full rounded-2xl h-14 text-base font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                    >
                       ดูรายละเอียด
                       <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
@@ -253,13 +260,17 @@ export default function HomePage() {
           <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-primary to-accent p-12 text-center">
             <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6">พร้อมเริ่มต้นกับเราหรือยัง?</h2>
             <div className="flex flex-col sm:flex-row gap-5 justify-center">
-              <Button size="lg" variant="secondary" className="rounded-full px-10 h-16 text-lg font-semibold">
-                <Phone className="mr-3 w-6 h-6" />
-                โทร 093-556-0076
+              <Button size="lg" variant="secondary" className="rounded-full px-10 h-16 text-lg font-semibold" asChild>
+                <a href="tel:0935560076">
+                  <Phone className="mr-3 w-6 h-6" />
+                  โทร 093-556-0076
+                </a>
               </Button>
-              <Button size="lg" className="rounded-full px-10 h-16 text-lg font-semibold bg-white/20 text-white border-white/30">
-                <MessageCircle className="mr-3 w-6 h-6" />
-                Line: @Scopesolutions
+              <Button size="lg" className="rounded-full px-10 h-16 text-lg font-semibold bg-white/20 text-white border-white/30 hover:bg-white/30" asChild>
+                <a href="https://lin.ee/WnV3iEh" target="_blank" rel="noopener noreferrer">
+                  <MessageCircle className="mr-3 w-6 h-6" />
+                  Line: @Scopesolutions
+                </a>
               </Button>
             </div>
           </div>
@@ -274,11 +285,11 @@ export default function HomePage() {
             <Phone className="w-8 h-8 text-green-500 mx-auto mb-4" />
             <p className="font-bold">093-556-0076</p>
           </a>
-          <a href="https://lin.ee/WnV3iEh" className="bg-card p-8 rounded-3xl border border-border hover:shadow-xl transition-all">
+          <a href="https://lin.ee/WnV3iEh" target="_blank" rel="noopener noreferrer" className="bg-card p-8 rounded-3xl border border-border hover:shadow-xl transition-all">
             <MessageCircle className="w-8 h-8 text-emerald-500 mx-auto mb-4" />
             <p className="font-bold">@Scopesolutions</p>
           </a>
-          <a href="https://www.facebook.com/SCOPESOLUTIONSCOMPANYLIMITED" className="bg-card p-8 rounded-3xl border border-border hover:shadow-xl transition-all">
+          <a href="https://www.facebook.com/SCOPESOLUTIONSCOMPANYLIMITED" target="_blank" rel="noopener noreferrer" className="bg-card p-8 rounded-3xl border border-border hover:shadow-xl transition-all">
             <Facebook className="w-8 h-8 text-blue-500 mx-auto mb-4" />
             <p className="font-bold">SCOPE SOLUTIONS</p>
           </a>

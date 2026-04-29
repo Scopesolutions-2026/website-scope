@@ -34,25 +34,19 @@ const EDGE_SCROLL_THRESHOLD = 8
 
 const mainNavItems: NavItem[] = [
   { id: "home", label: "Home", labelTh: "หน้าแรก", icon: Home, color: "from-sky-400 to-blue-500" },
- // { id: "academy", label: "Academy", labelTh: "คอร์สเรียน", icon: GraduationCap, color: "from-violet-400 to-purple-500" },
- // { id: "toolbox", label: "Tools", labelTh: "เครื่องมือ", icon: Wrench, color: "from-amber-400 to-orange-500" },
+  { id: "articles", label: "Articles", labelTh: "บทความ", icon: BookOpen, color: "from-indigo-400 to-blue-500" },
   { id: "services", label: "Services", labelTh: "บริการ", icon: Briefcase, color: "from-emerald-400 to-teal-500" },
-  { id: "profile", label: "Profile", labelTh: "โปรไฟล์", icon: User, color: "from-pink-400 to-rose-500" },
+  { id: "contact", label: "Contact", labelTh: "ติดต่อเรา", icon: Phone, color: "from-teal-400 to-cyan-500" },
 ]
 
 const allNavItems: NavItem[] = [
   { id: "home", label: "Home", labelTh: "หน้าแรก", icon: Home, color: "from-sky-400 to-blue-500" },
- // { id: "academy", label: "Academy", labelTh: "คอร์สเรียน", icon: GraduationCap, color: "from-violet-400 to-purple-500" },
- // { id: "toolbox", label: "Tools", labelTh: "เครื่องมือ", icon: Wrench, color: "from-amber-400 to-orange-500" },
   { id: "services", label: "Services", labelTh: "บริการ", icon: Briefcase, color: "from-emerald-400 to-teal-500" },
   { id: "articles", label: "Articles", labelTh: "บทความ", icon: BookOpen, color: "from-indigo-400 to-blue-500" },
-  { id: "about", label: "About", labelTh: "เกี่ยวกับเรา", icon: Building2, color: "from-slate-400 to-gray-500" },
   { id: "contact", label: "Contact", labelTh: "ติดต่อเรา", icon: Phone, color: "from-teal-400 to-cyan-500" },
-  { id: "profile", label: "Profile", labelTh: "โปรไฟล์", icon: User, color: "from-pink-400 to-rose-500" },
-  { id: "admin", label: "Admin", labelTh: "จัดการระบบ", icon: Shield, color: "from-slate-600 to-slate-800" },
 ]
 
-const orderedPages: PageType[] = ["home", "services", "articles", "about", "contact", "profile"]
+const orderedPages: PageType[] = ["home", "articles", "services", "contact"]
 
 function getNextPageFor(page: PageType): PageType | null {
   const idx = orderedPages.indexOf(page)
@@ -197,25 +191,28 @@ export default function AppShell() {
 
   if (!mounted) return null
 
+  // ฟังก์ชันสลับหน้าเว็บ (ถูกเรียกใช้โดยปุ่มต่างๆ)
+  const handleNavClick = (pageId: PageType) => {
+    setActivePage(pageId)
+    setMobileMenuOpen(false)
+    window.scrollTo({ top: 0, behavior: "instant" })
+  }
+
   const renderPage = () => {
     switch (activePage) {
-      case "home": return <HomePage />
+      // ✅ เพิ่ม onNavigate ให้ HomePage เพื่อให้ปุ่มข้างในสั่งสลับหน้าได้
+      case "home": return <HomePage onNavigate={handleNavClick} />
       case "about": return <AboutPage />
-      case "services": return <ServicesPage />
+      // ✅ เพิ่ม onNavigate ให้ ServicesPage เผื่อไว้ด้วย
+      case "services": return <ServicesPage onNavigate={handleNavClick} />
       case "academy": return <AcademyPage />
       case "toolbox": return <ToolboxPage />
       case "articles": return <ArticlesPage />
       case "contact": return <ContactPage />
       case "profile": return <ProfilePage onLoginClick={() => setShowLoginModal(true)} />
       case "admin": return <AdminPage />
-      default: return <HomePage />
+      default: return <HomePage onNavigate={handleNavClick} />
     }
-  }
-
-  const handleNavClick = (pageId: PageType) => {
-    setActivePage(pageId)
-    setMobileMenuOpen(false)
-    window.scrollTo({ top: 0, behavior: "instant" })
   }
 
   const filteredNavItems = allNavItems.filter(item => item.id !== "admin" || isAdmin)
@@ -387,22 +384,8 @@ export default function AppShell() {
             ))}
           </div>
         </div>
-        <div className="p-4 border-t border-border">
-          <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl p-4 border border-primary/10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-foreground text-sm">Go Premium</p>
-                <p className="text-xs text-muted-foreground">Unlock all features</p>
-              </div>
-            </div>
-            <motion.button whileHover={{ scale: 1.02 }} className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">
-              Upgrade Now
-            </motion.button>
-          </div>
-        </div>
+        
+        {/* ลบกล่อง Go Premium ออกเพื่อให้เมนูดูเรียบร้อยขึ้นตามสไตล์เว็บองค์กร */}
       </motion.nav>
 
       {/* Mobile Bottom Navigation */}
