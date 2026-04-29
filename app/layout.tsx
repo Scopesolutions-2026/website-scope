@@ -18,6 +18,7 @@ export const metadata: Metadata = {
       {
         url: '/icon.png',
         href: '/icon.png',
+        sizes: '512x512',
       },
     ],
     // ถ้าคุณมีไฟล์ apple-icon.png ก็เก็บไว้ได้ แต่ถ้าไม่มีให้ลบบรรทัดล่างนี้ออกครับ
