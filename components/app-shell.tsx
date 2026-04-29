@@ -34,16 +34,16 @@ const EDGE_SCROLL_THRESHOLD = 8
 
 const mainNavItems: NavItem[] = [
   { id: "home", label: "Home", labelTh: "หน้าแรก", icon: Home, color: "from-sky-400 to-blue-500" },
-  { id: "academy", label: "Academy", labelTh: "คอร์สเรียน", icon: GraduationCap, color: "from-violet-400 to-purple-500" },
-  { id: "toolbox", label: "Tools", labelTh: "เครื่องมือ", icon: Wrench, color: "from-amber-400 to-orange-500" },
+ // { id: "academy", label: "Academy", labelTh: "คอร์สเรียน", icon: GraduationCap, color: "from-violet-400 to-purple-500" },
+ // { id: "toolbox", label: "Tools", labelTh: "เครื่องมือ", icon: Wrench, color: "from-amber-400 to-orange-500" },
   { id: "services", label: "Services", labelTh: "บริการ", icon: Briefcase, color: "from-emerald-400 to-teal-500" },
   { id: "profile", label: "Profile", labelTh: "โปรไฟล์", icon: User, color: "from-pink-400 to-rose-500" },
 ]
 
 const allNavItems: NavItem[] = [
   { id: "home", label: "Home", labelTh: "หน้าแรก", icon: Home, color: "from-sky-400 to-blue-500" },
-  { id: "academy", label: "Academy", labelTh: "คอร์สเรียน", icon: GraduationCap, color: "from-violet-400 to-purple-500" },
-  { id: "toolbox", label: "Tools", labelTh: "เครื่องมือ", icon: Wrench, color: "from-amber-400 to-orange-500" },
+ // { id: "academy", label: "Academy", labelTh: "คอร์สเรียน", icon: GraduationCap, color: "from-violet-400 to-purple-500" },
+ // { id: "toolbox", label: "Tools", labelTh: "เครื่องมือ", icon: Wrench, color: "from-amber-400 to-orange-500" },
   { id: "services", label: "Services", labelTh: "บริการ", icon: Briefcase, color: "from-emerald-400 to-teal-500" },
   { id: "articles", label: "Articles", labelTh: "บทความ", icon: BookOpen, color: "from-indigo-400 to-blue-500" },
   { id: "about", label: "About", labelTh: "เกี่ยวกับเรา", icon: Building2, color: "from-slate-400 to-gray-500" },
@@ -52,7 +52,7 @@ const allNavItems: NavItem[] = [
   { id: "admin", label: "Admin", labelTh: "จัดการระบบ", icon: Shield, color: "from-slate-600 to-slate-800" },
 ]
 
-const orderedPages: PageType[] = ["home", "academy", "toolbox", "services", "articles", "about", "contact", "profile"]
+const orderedPages: PageType[] = ["home", "services", "articles", "about", "contact", "profile"]
 
 function getNextPageFor(page: PageType): PageType | null {
   const idx = orderedPages.indexOf(page)
