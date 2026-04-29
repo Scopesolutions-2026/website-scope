@@ -3,30 +3,26 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
-  Home, GraduationCap, Wrench, User, Sparkles, Building2, 
-  Briefcase, BookOpen, Phone, Menu, X, ChevronRight, Shield, ChevronDown
+  Home, Sparkles, Briefcase, BookOpen, Phone, Menu, X, ChevronRight, ChevronDown
 } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import HomePage from "@/components/pages/home-page"
-import AcademyPage from "@/components/pages/academy-page"
-import ToolboxPage from "@/components/pages/toolbox-page"
-import ProfilePage from "@/components/pages/profile-page"
-import AboutPage from "@/components/pages/about-page"
 import ServicesPage from "@/components/pages/services-page"
 import ArticlesPage from "@/components/pages/articles-page"
 import ContactPage from "@/components/pages/contact-page"
-import AdminPage from "@/components/pages/admin-page"
+import ProfilePage from "@/components/pages/profile-page"
 import LoginModal from "@/components/auth/login-modal"
 import { useAuth } from "@/lib/auth-context"
 
-type PageType = "home" | "about" | "services" | "academy" | "toolbox" | "articles" | "contact" | "profile" | "admin"
+// ✅ ปรับ PageType ให้เหลือเฉพาะหน้าที่มีการ Import มาใช้งานจริงเพื่อหายแดง
+type PageType = "home" | "services" | "articles" | "contact" | "profile"
 
 interface NavItem {
   id: PageType
   label: string
   labelTh: string
-  icon: typeof Home
+  icon: any
   color: string
 }
 
@@ -39,13 +35,9 @@ const mainNavItems: NavItem[] = [
   { id: "contact", label: "Contact", labelTh: "ติดต่อเรา", icon: Phone, color: "from-teal-400 to-cyan-500" },
 ]
 
-const allNavItems: NavItem[] = [
-  { id: "home", label: "Home", labelTh: "หน้าแรก", icon: Home, color: "from-sky-400 to-blue-500" },
-  { id: "services", label: "Services", labelTh: "บริการ", icon: Briefcase, color: "from-emerald-400 to-teal-500" },
-  { id: "articles", label: "Articles", labelTh: "บทความ", icon: BookOpen, color: "from-indigo-400 to-blue-500" },
-  { id: "contact", label: "Contact", labelTh: "ติดต่อเรา", icon: Phone, color: "from-teal-400 to-cyan-500" },
-]
+const allNavItems: NavItem[] = [...mainNavItems]
 
+// ✅ ตัวแปรนี้ต้องมี Type เป็น PageType[] เพื่อไม่ให้ฟังก์ชันด้านล่างติดแดง
 const orderedPages: PageType[] = ["home", "articles", "services", "contact"]
 
 function getNextPageFor(page: PageType): PageType | null {
@@ -67,8 +59,7 @@ export default function AppShell() {
   const [showEdgeWarning, setShowEdgeWarning] = useState<"top" | "bottom" | null>(null)
   const [edgeScrollCount, setEdgeScrollCount] = useState(0)
   const mainRef = useRef<HTMLDivElement>(null)
-  const lastScrollTop = useRef(0)
-  const { user, isAdmin } = useAuth()
+  const { isAdmin } = useAuth()
 
   const nextPage = getNextPageFor(activePage)
   const prevPage = getPrevPageFor(activePage)
@@ -95,7 +86,6 @@ export default function AppShell() {
         setShowEdgeWarning(null)
         setEdgeScrollCount(0)
       }
-      lastScrollTop.current = scrollTop
     }
 
     const handleWheel = (e: WheelEvent) => {
@@ -136,62 +126,17 @@ export default function AppShell() {
       }
     }
 
-    let touchStartY = 0
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY
-    }
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      const touchEndY = e.changedTouches[0].clientY
-      const diff = touchStartY - touchEndY
-      const scrollTop = window.scrollY
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight
-      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0
-
-      const np = getNextPageFor(activePage)
-      const pp = getPrevPageFor(activePage)
-
-      if (diff > 30 && progress >= 96 && np) {
-        setEdgeScrollCount(prev => {
-          const next = prev + 1
-          if (next >= EDGE_SCROLL_THRESHOLD) {
-            setActivePage(np)
-            window.scrollTo({ top: 0, behavior: "instant" })
-            return 0
-          }
-          return next
-        })
-      } else if (diff < -30 && scrollTop <= 10 && pp) {
-        setEdgeScrollCount(prev => {
-          const next = prev + 1
-          if (next >= EDGE_SCROLL_THRESHOLD) {
-            setActivePage(pp)
-            setTimeout(() => {
-              window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" })
-            }, 100)
-            return 0
-          }
-          return next
-        })
-      }
-    }
-
     window.addEventListener("scroll", handleScroll)
     window.addEventListener("wheel", handleWheel, { passive: true })
-    window.addEventListener("touchstart", handleTouchStart, { passive: true })
-    window.addEventListener("touchend", handleTouchEnd, { passive: true })
     return () => {
       window.removeEventListener("scroll", handleScroll)
       window.removeEventListener("wheel", handleWheel)
-      window.removeEventListener("touchstart", handleTouchStart)
-      window.removeEventListener("touchend", handleTouchEnd)
       if (scrollTimeout) clearTimeout(scrollTimeout)
     }
   }, [activePage])
 
   if (!mounted) return null
 
-  // ฟังก์ชันสลับหน้าเว็บ (ถูกเรียกใช้โดยปุ่มต่างๆ)
   const handleNavClick = (pageId: PageType) => {
     setActivePage(pageId)
     setMobileMenuOpen(false)
@@ -200,22 +145,16 @@ export default function AppShell() {
 
   const renderPage = () => {
     switch (activePage) {
-      // ✅ เพิ่ม onNavigate ให้ HomePage เพื่อให้ปุ่มข้างในสั่งสลับหน้าได้
       case "home": return <HomePage onNavigate={handleNavClick} />
-      case "about": return <AboutPage />
-      // ✅ เพิ่ม onNavigate ให้ ServicesPage เผื่อไว้ด้วย
       case "services": return <ServicesPage onNavigate={handleNavClick} />
-      case "academy": return <AcademyPage />
-      case "toolbox": return <ToolboxPage />
       case "articles": return <ArticlesPage />
       case "contact": return <ContactPage />
       case "profile": return <ProfilePage onLoginClick={() => setShowLoginModal(true)} />
-      case "admin": return <AdminPage />
       default: return <HomePage onNavigate={handleNavClick} />
     }
   }
 
-  const filteredNavItems = allNavItems.filter(item => item.id !== "admin" || isAdmin)
+  const filteredNavItems = allNavItems
 
   return (
     <div className="min-h-screen bg-background">
@@ -284,54 +223,17 @@ export default function AppShell() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Edge Warning - Bottom (next page) */}
+        {/* Edge Warning */}
         <AnimatePresence>
           {showEdgeWarning === "bottom" && nextPage && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-28 lg:bottom-8 left-1/2 -translate-x-1/2 z-30">
-              <motion.div animate={{ y: [0, 6, 0] }} transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }} className="flex flex-col items-center gap-2 px-6 py-4 bg-card/95 backdrop-blur-md text-foreground rounded-2xl shadow-xl border border-border min-w-[200px]">
-                <p className="text-sm font-medium text-muted-foreground">
-                  {edgeScrollCount >= 1 ? `เลื่อนลงอีก ${EDGE_SCROLL_THRESHOLD - edgeScrollCount} ครั้ง` : "เลื่อนลงต่อเพื่อไปหน้าถัดไป"}
-                </p>
+              <div className="flex flex-col items-center gap-2 px-6 py-4 bg-card/95 backdrop-blur-md text-foreground rounded-2xl shadow-xl border border-border min-w-[200px]">
+                <p className="text-sm font-medium text-muted-foreground">เลื่อนลงต่อเพื่อไปหน้าถัดไป</p>
                 <div className="flex items-center gap-2 text-primary font-semibold">
                   <span>{filteredNavItems.find(i => i.id === nextPage)?.labelTh}</span>
                   <ChevronDown className="w-5 h-5 animate-bounce" />
                 </div>
-                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${(edgeScrollCount / EDGE_SCROLL_THRESHOLD) * 100}%` }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground">{edgeScrollCount}/{EDGE_SCROLL_THRESHOLD}</p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Edge Warning - Top (previous page) */}
-        <AnimatePresence>
-          {showEdgeWarning === "top" && prevPage && (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="fixed top-20 lg:top-8 left-1/2 -translate-x-1/2 z-30">
-              <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }} className="flex flex-col items-center gap-2 px-6 py-4 bg-card/95 backdrop-blur-md text-foreground rounded-2xl shadow-xl border border-border min-w-[200px]">
-                <div className="flex items-center gap-2 text-primary font-semibold">
-                  <ChevronDown className="w-5 h-5 animate-bounce rotate-180" />
-                  <span>{filteredNavItems.find(i => i.id === prevPage)?.labelTh}</span>
-                </div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {edgeScrollCount >= 1 ? `เลื่อนขึ้นอีก ${EDGE_SCROLL_THRESHOLD - edgeScrollCount} ครั้ง` : "เลื่อนขึ้นต่อเพื่อกลับหน้าก่อน"}
-                </p>
-                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
-                    initial={{ width: "0%" }}
-                    animate={{ width: `${(edgeScrollCount / EDGE_SCROLL_THRESHOLD) * 100}%` }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground">{edgeScrollCount}/{EDGE_SCROLL_THRESHOLD}</p>
-              </motion.div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -339,12 +241,11 @@ export default function AppShell() {
 
       {/* Desktop Sidebar */}
       <motion.nav initial={{ x: -100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="hidden lg:flex fixed left-0 top-0 bottom-0 w-72 flex-col bg-white border-r border-border z-50">
-        <motion.div className="absolute top-0 left-0 w-1 bg-gradient-to-b from-primary to-accent rounded-full" style={{ height: `${scrollProgress}%` }} />
         <div className="p-6 border-b border-border">
           <div className="flex items-center gap-4">
-            <motion.div whileHover={{ scale: 1.05 }} className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-primary/10">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg ring-4 ring-primary/10">
               <Image src="/logo.png" alt="SCOPE" width={56} height={56} className="object-cover" loading="eager" />
-            </motion.div>
+            </div>
             <div>
               <h1 className="font-bold text-foreground text-lg">SCOPE</h1>
               <p className="text-sm text-muted-foreground">Solutions</p>
@@ -360,9 +261,6 @@ export default function AppShell() {
             {filteredNavItems.map((item, index) => (
               <motion.button
                 key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
                 onClick={() => handleNavClick(item.id)}
                 whileHover={{ x: 4 }}
                 className={cn(
@@ -384,22 +282,20 @@ export default function AppShell() {
             ))}
           </div>
         </div>
-        
-        {/* ลบกล่อง Go Premium ออกเพื่อให้เมนูดูเรียบร้อยขึ้นตามสไตล์เว็บองค์กร */}
       </motion.nav>
 
       {/* Mobile Bottom Navigation */}
       <motion.nav initial={{ y: 100 }} animate={{ y: 0 }} className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-3 pb-4">
-        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/15 border border-slate-200/50 p-1.5">
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/50 p-1.5">
           <div className="flex items-center justify-around">
             {mainNavItems.map((item) => (
               <motion.button key={item.id} onClick={() => handleNavClick(item.id)} whileTap={{ scale: 0.9 }} className="relative flex flex-col items-center py-2 px-4 rounded-xl">
                 {activePage === item.id && (
                   <motion.div layoutId="mobile-active" className={cn("absolute inset-0 rounded-xl bg-gradient-to-r shadow-lg", item.color)} />
                 )}
-                <motion.div animate={activePage === item.id ? { scale: 1.1 } : { scale: 1 }} className={cn("relative z-10", activePage === item.id ? "text-white" : "text-muted-foreground")}>
+                <div className={cn("relative z-10", activePage === item.id ? "text-white" : "text-muted-foreground")}>
                   <item.icon className="w-5 h-5" />
-                </motion.div>
+                </div>
                 <span className={cn("relative z-10 text-[10px] font-semibold mt-1", activePage === item.id ? "text-white" : "text-muted-foreground")}>{item.labelTh}</span>
               </motion.button>
             ))}
