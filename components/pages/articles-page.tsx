@@ -4,18 +4,52 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import { 
-  BookOpen, Clock, Eye, Heart, Crown, Sparkles,
-  Search, Tag, X, Share2, Newspaper
+  BookOpen, Clock, Tag, X, Search, Newspaper, ChevronRight
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-
-// --- ส่วนที่เพิ่ม/แก้ไขใหม่ ---
 import { client, urlFor } from "@/lib/sanity"
 import { articlesQuery } from "@/lib/sanity.queries"
-import { PortableText } from "@portabletext/react" // ตัวอ่านเนื้อหาจาก Sanity
-// -----------------------
+import { PortableText } from "@portabletext/react"
+
+// --- แก้ไขส่วน Custom Components สำหรับแสดงรูปภาพเนื้อหา ---
+const ptComponents = {
+  types: {
+    image: ({ value }: any) => {
+      if (!value?.asset?._ref) return null;
+      const imageUrl = urlFor(value).url();
+      return (
+        <div className="relative w-full my-6 sm:my-10 group overflow-hidden">
+          {/* ส่วนแสดงรูปภาพ: ปรับให้กว้างที่สุดและสูงตามจริง */}
+          <div className="relative w-full rounded-2xl overflow-hidden shadow-md border border-slate-100">
+            <img
+              src={imageUrl}
+              alt="เนื้อหาบทความ SCOPE"
+              className="w-full h-auto object-contain bg-white"
+            />
+          </div>
+          
+          {/* ปุ่มทางลัด: ช่วยให้คนกดไปดูรูปเต็มเพื่อซูมได้ง่ายขึ้น */}
+          <a 
+            href={imageUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 mt-3 text-xs font-bold text-primary hover:underline px-4 py-2 bg-primary/5 rounded-full"
+          >
+            <Search className="w-3 h-3" />
+            จิ้มตรงนี้เพื่อขยายรูปอ่านแบบเต็มจอ
+          </a>
+        </div>
+      )
+    },
+  },
+  block: {
+    normal: ({ children }: any) => <p className="text-slate-600 leading-relaxed mb-4 text-base sm:text-lg px-2 sm:px-0">{children}</p>,
+    h2: ({ children }: any) => <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mt-8 mb-4 px-2 sm:px-0">{children}</h2>,
+  },
+}
+// ----------------------------------------------------
 
 type ArticleTier = "free" | "member" | "premium"
 type ArticleCategory = "all" | "accounting" | "tax" | "business" | "engineering"
@@ -28,36 +62,9 @@ interface Article {
   category: ArticleCategory
   tier: ArticleTier
   author: string
-  authorImage?: string
   date: string
   readTime: string
-  views: number
-  likes: number
-  body?: any // เพิ่มฟิลด์ body รองรับเนื้อหาที่มีรูป
-}
-
-// สร้าง Custom Components สำหรับจัดการรูปภาพในเนื้อหาบทความ
-const ptComponents = {
-  types: {
-    image: ({ value }: any) => {
-      if (!value?.asset?._ref) return null;
-      return (
-        <div className="relative w-full aspect-video my-10 rounded-[2rem] overflow-hidden shadow-xl border border-slate-100">
-          <Image
-            src={urlFor(value).url()}
-            alt="เนื้อหาบทความ SCOPE"
-            fill
-            className="object-contain bg-slate-50"
-          />
-        </div>
-      )
-    },
-  },
-  block: {
-    // ปรับแต่งขนาดตัวอักษรของเนื้อหา
-    normal: ({ children }: any) => <p className="text-slate-600 leading-extra-relaxed mb-6 text-lg">{children}</p>,
-    h2: ({ children }: any) => <h2 className="text-2xl font-bold text-slate-800 mt-12 mb-6">{children}</h2>,
-  },
+  body?: any
 }
 
 const categories = [
@@ -65,12 +72,6 @@ const categories = [
   { id: "accounting" as ArticleCategory, label: "บัญชี & ภาษี" },
   { id: "engineering" as ArticleCategory, label: "วิศวกรรม" },
 ]
-
-const tierConfig = {
-  free: { label: "อ่านฟรี", color: "bg-emerald-500", icon: BookOpen },
-  member: { label: "สมาชิก", color: "bg-sky-500", icon: Sparkles },
-  premium: { label: "Premium", color: "bg-amber-500", icon: Crown },
-}
 
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([])
@@ -103,37 +104,36 @@ export default function ArticlesPage() {
   return (
     <div className="min-h-screen bg-slate-50/50">
       {/* Hero Section */}
-      <section className="relative pt-24 pb-16 px-6 overflow-hidden">
+      <section className="relative pt-24 pb-16 px-4 sm:px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-sky-50 via-white to-amber-50/30" />
         <div className="relative max-w-6xl mx-auto text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs sm:text-sm font-bold mb-6 uppercase tracking-wider">
               <Newspaper className="w-4 h-4" />
               SCOPE KNOWLEDGE HUB
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+            <h1 className="text-3xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
               คลังความรู้<span className="text-primary">บัญชี & วิศวกรรม</span>
             </h1>
-            <div className="max-w-2xl mx-auto relative group">
-               <div className="relative flex items-center bg-white rounded-2xl border border-slate-200 shadow-sm p-1.5 focus-within:border-primary transition-all">
-                <Search className="ml-4 w-5 h-5 text-muted-foreground" />
+            <div className="max-w-2xl mx-auto">
+               <div className="relative flex items-center bg-white rounded-2xl border border-slate-200 shadow-sm p-1 sm:p-1.5 focus-within:ring-2 ring-primary/20 transition-all">
+                <Search className="ml-4 w-5 h-5 text-slate-400" />
                 <Input
-                  placeholder="ค้นหาชื่อบทความ หรือเรื่องที่สนใจ..."
+                  placeholder="ค้นหาเรื่องที่สนใจ..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="border-0 focus-visible:ring-0 text-base py-6 bg-transparent"
+                  className="border-0 focus-visible:ring-0 text-sm sm:text-base py-6 bg-transparent"
                 />
               </div>
             </div>
           </motion.div>
-          {/* Categories Nav */}
-          <div className="mt-12 flex flex-wrap justify-center gap-2 sm:gap-4">
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
             {categories.map((cat) => (
               <Button
                 key={cat.id}
                 variant={activeCategory === cat.id ? "default" : "outline"}
                 onClick={() => setActiveCategory(cat.id)}
-                className="rounded-full px-6"
+                className="rounded-full px-5 py-0 h-10 text-xs sm:text-sm"
               >
                 {cat.label}
               </Button>
@@ -143,30 +143,30 @@ export default function ArticlesPage() {
       </section>
 
       {/* Articles Grid */}
-      <section className="max-w-6xl mx-auto px-6 pb-24">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-24">
         {loading ? (
-          <div className="flex justify-center items-center py-20 animate-pulse text-primary">กำลังโหลดข้อมูล...</div>
+          <div className="flex justify-center items-center py-20 text-slate-400 text-sm">กำลังโหลดคลังความรู้...</div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <AnimatePresence mode="popLayout">
-              {filteredArticles.map((article, i) => (
+              {filteredArticles.map((article) => (
                 <motion.article
                   key={article.id}
                   layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="group bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-2xl transition-all cursor-pointer"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="group bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col"
                   onClick={() => setSelectedArticle(article)}
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    {article.image && <Image src={article.image} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />}
+                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+                    {article.image && <Image src={article.image} alt={article.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />}
                   </div>
-                  <div className="p-8">
-                    <h3 className="text-xl font-bold text-foreground mb-4 line-clamp-2">{article.title}</h3>
-                    <p className="text-muted-foreground text-sm line-clamp-2 mb-6">{article.excerpt}</p>
-                    <div className="flex items-center justify-between pt-6 border-t border-slate-50 text-[10px] text-muted-foreground">
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="text-lg font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-primary transition-colors">{article.title}</h3>
+                    <p className="text-slate-500 text-xs line-clamp-2 mb-6">{article.excerpt}</p>
+                    <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                        <span>{article.author || "SCOPE Team"}</span>
-                       <div className="flex gap-3"><Clock className="w-3 h-3" /> {article.readTime || "5 นาที"}</div>
+                       <div className="flex gap-2"><Clock className="w-3 h-3" /> {article.readTime || "5 MIN"}</div>
                     </div>
                   </div>
                 </motion.article>
@@ -176,51 +176,57 @@ export default function ArticlesPage() {
         )}
       </section>
 
-      {/* Modal แสดงเนื้อหาบทความแบบละเอียด */}
+      {/* --- แก้ไข Modal: ปรับให้กว้างและลดระยะขอบเพื่อให้รูปภาพตัวใหญ่ที่สุด --- */}
       <AnimatePresence>
         {selectedArticle && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onClick={() => setSelectedArticle(null)} />
+          <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setSelectedArticle(null)} />
             
             <motion.div
               layoutId={selectedArticle.id}
-              className="relative w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+              className="relative w-full h-full sm:h-auto sm:max-w-4xl bg-white sm:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col"
             >
-              <button onClick={() => setSelectedArticle(null)} className="absolute top-6 right-6 z-20 p-2 bg-black/20 hover:bg-black/40 rounded-full text-white transition-all">
-                <X className="w-6 h-6" />
+              <button 
+                onClick={() => setSelectedArticle(null)} 
+                className="absolute top-4 right-4 z-50 p-3 bg-white/90 hover:bg-white rounded-full shadow-lg text-slate-900 transition-all active:scale-95"
+              >
+                <X className="w-5 h-5" />
               </button>
 
-              <div className="overflow-y-auto">
-                <div className="relative h-72 sm:h-96 w-full">
+              <div className="overflow-y-auto overflow-x-hidden flex-1 scrollbar-hide">
+                <div className="relative h-56 sm:h-80 w-full bg-slate-100">
                   {selectedArticle.image && <Image src={selectedArticle.image} alt={selectedArticle.title} fill className="object-cover" />}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-black/20" />
                 </div>
 
-                <div className="p-8 sm:p-12 -mt-20 relative z-10">
-                  <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-50">
-                    <div className="flex items-center gap-2 text-primary font-bold text-sm mb-4">
-                      <Tag className="w-4 h-4" />
+                {/* ส่วนเนื้อหา: ลด Padding ซ้ายขวาในมือถือให้เหลือน้อยที่สุด (p-4) เพื่อขยายรูปภาพ */}
+                <div className="px-4 py-8 sm:px-12 sm:pb-16 -mt-12 relative z-10">
+                  <div className="bg-white rounded-3xl p-5 sm:p-10 shadow-xl border border-slate-50">
+                    <div className="flex items-center gap-2 text-primary font-bold text-[10px] sm:text-xs mb-4 uppercase tracking-tighter">
+                      <Tag className="w-3 h-3" />
                       {categories.find(c => c.id === selectedArticle.category)?.label}
                     </div>
-                    <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-6 leading-tight">
+                    <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">
                       {selectedArticle.title}
                     </h2>
                     
-                    {/* --- ส่วนแสดงผลเนื้อหา (Rich Text + Images) --- */}
-                    <div className="mt-10">
+                    <div className="h-1 w-20 bg-primary/20 rounded-full mb-10" />
+
+                    {/* Content Area: รูปในนี้จะใหญ่มากเพราะ padding เราน้อย */}
+                    <div className="article-content">
                       {selectedArticle.body ? (
                         <PortableText value={selectedArticle.body} components={ptComponents} />
                       ) : (
-                        <p className="text-slate-500 italic text-lg leading-relaxed">
+                        <p className="text-slate-500 italic text-base leading-relaxed">
                           {selectedArticle.excerpt}
                         </p>
                       )}
                     </div>
-                    {/* ------------------------------------------- */}
 
-                    <div className="mt-12 flex justify-center border-t pt-8">
-                      <Button size="lg" className="rounded-full px-12 h-14 shadow-xl" onClick={() => setSelectedArticle(null)}>
-                        ปิดหน้าต่างนี้
+                    <div className="mt-12 flex flex-col items-center gap-4 border-t border-slate-100 pt-10">
+                      <p className="text-xs text-slate-400 font-medium">ขอบคุณที่ติดตามสาระดีๆ จาก SCOPE SOLUTIONS</p>
+                      <Button size="lg" className="rounded-full px-10 h-12 w-full sm:w-auto font-bold shadow-lg" onClick={() => setSelectedArticle(null)}>
+                        ปิดหน้าบทความ
                       </Button>
                     </div>
                   </div>
