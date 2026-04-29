@@ -122,6 +122,7 @@ const whyChooseUs = [
 ]
 
 export default function ServicesPage() {
+  // บังคับให้หน้าเริ่มต้นเป็นบัญชีเสมอ
   const [activeTab, setActiveTab] = useState<ServiceTab>("accounting")
   const services = activeTab === "accounting" ? accountingServices : engineeringServices
 
@@ -167,7 +168,8 @@ export default function ServicesPage() {
             </p>
 
             {/* Tab Switcher */}
-            <div className="inline-flex p-2 bg-white rounded-2xl shadow-lg border border-slate-100">
+            <div className="inline-flex p-2 bg-white rounded-2xl shadow-lg border border-slate-100 flex-col sm:flex-row gap-2">
+              {/* ปุ่มบริการบัญชี (กดได้ปกติ) */}
               <motion.button
                 onClick={() => setActiveTab("accounting")}
                 whileTap={{ scale: 0.95 }}
@@ -188,23 +190,17 @@ export default function ServicesPage() {
                 </span>
               </motion.button>
               
+              {/* ปุ่มบริการวิศวกรรม (ปิดใช้งาน + ป้ายเร็วๆ นี้) */}
               <motion.button
-                onClick={() => setActiveTab("engineering")}
-                whileTap={{ scale: 0.95 }}
-                className={`relative px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
-                  activeTab === "engineering" ? "text-white" : "text-muted-foreground hover:text-foreground"
-                }`}
+                disabled
+                className="relative px-8 py-4 rounded-xl font-semibold transition-all duration-300 text-muted-foreground opacity-60 cursor-not-allowed bg-slate-50/50"
               >
-                {activeTab === "engineering" && (
-                  <motion.div
-                    layoutId="tab-bg"
-                    className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl"
-                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                  />
-                )}
                 <span className="relative z-10 flex items-center gap-2">
                   <Ruler className="w-5 h-5" />
                   บริการวิศวกรรม
+                  <span className="ml-2 text-[10px] bg-black/10 text-slate-700 px-2 py-0.5 rounded-full flex items-center gap-1 font-bold">
+                    <Clock className="w-3 h-3" /> เร็วๆ นี้
+                  </span>
                 </span>
               </motion.button>
             </div>
@@ -359,13 +355,13 @@ export default function ServicesPage() {
             
             <div className="flex flex-wrap justify-center gap-4 relative z-10">
               <motion.a
-                href="tel:0XX-XXX-XXXX"
+                href="tel:0935560076"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-sky-600 rounded-xl font-semibold shadow-lg"
               >
                 <Phone className="w-5 h-5" />
-                โทรหาเรา
+                โทร 093-556-0076
               </motion.a>
               <motion.a
                 href="https://line.me/ti/p/~scopesolutions"

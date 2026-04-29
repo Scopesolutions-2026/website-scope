@@ -11,7 +11,8 @@ import {
   MessageCircle, 
   Facebook,
   Play,
-  Sparkles
+  Sparkles,
+  Clock // เพิ่มไอคอนนาฬิกาสำหรับ Coming soon
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -24,7 +25,8 @@ const services = [
     image: "/images/hero-accounting.jpg",
     features: ["ทำบัญชีรายเดือน/รายปี", "ยื่นภาษี VAT, WHT, PND", "วางระบบบัญชี", "ปิดงบการเงินประจำปี", "จดทะเบียนบริษัท"],
     color: "from-sky-400 to-blue-600",
-    shadowColor: "shadow-sky-500/20"
+    shadowColor: "shadow-sky-500/20",
+    status: "ready" // สถานะพร้อมใช้งาน
   },
   {
     title: "บริการวิศวกรรม",
@@ -34,7 +36,8 @@ const services = [
     image: "/images/hero-engineering.jpg",
     features: ["รับตรวจบ้านและคอนโดก่อนโอนกรรมสิทธิ์"],
     color: "from-amber-400 to-orange-600",
-    shadowColor: "shadow-amber-500/20"
+    shadowColor: "shadow-amber-500/20",
+    status: "coming_soon" // สถานะยังไม่พร้อมใช้งาน
   },
 ]
 
@@ -184,22 +187,30 @@ export default function HomePage() {
               <motion.div
                 key={service.title}
                 variants={fadeInUp}
-                whileHover={{ y: -12 }}
-                className={`group bg-card rounded-[2rem] overflow-hidden border border-border hover:border-primary/40 shadow-xl ${service.shadowColor} hover:shadow-2xl transition-all duration-500`}
+                whileHover={service.status === "ready" ? { y: -12 } : {}}
+                className={`group bg-card rounded-[2rem] overflow-hidden border border-border ${service.status === "ready" ? 'hover:border-primary/40 shadow-xl hover:shadow-2xl' : 'opacity-90 shadow-md'} ${service.shadowColor} transition-all duration-500`}
               >
                 <div className="relative h-56 overflow-hidden">
                   <Image
                     src={service.image}
                     alt={service.title}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
+                    className={`object-cover ${service.status === "ready" ? 'group-hover:scale-110' : ''} transition-transform duration-700`}
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${service.color} opacity-70 group-hover:opacity-80 transition-opacity`} />
+                  <div className={`absolute inset-0 bg-gradient-to-t ${service.color} ${service.status === "ready" ? 'opacity-70 group-hover:opacity-80' : 'opacity-80 grayscale-[30%]'} transition-all`} />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-20 h-20 rounded-3xl bg-white/25 backdrop-blur-sm flex items-center justify-center border border-white/30">
                       <service.icon className="w-10 h-10 text-white" />
                     </div>
                   </div>
+                  
+                  {/* ป้ายกำกับสำหรับบริการที่ยังไม่พร้อม */}
+                  {service.status === "coming_soon" && (
+                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      เร็วๆ นี้
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-8">
@@ -218,10 +229,17 @@ export default function HomePage() {
                     ))}
                   </ul>
 
-                  <Button className="w-full rounded-2xl h-14 text-base font-semibold">
-                    ดูรายละเอียด
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
+                  {/* แยกปุ่มกดตามสถานะ */}
+                  {service.status === "ready" ? (
+                    <Button className="w-full rounded-2xl h-14 text-base font-semibold group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                      ดูรายละเอียด
+                      <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  ) : (
+                    <Button disabled variant="secondary" className="w-full rounded-2xl h-14 text-base font-semibold cursor-not-allowed opacity-70">
+                      เร็วๆ นี้ (Coming Soon)
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             ))}
